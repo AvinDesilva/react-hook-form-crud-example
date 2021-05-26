@@ -1,15 +1,16 @@
 import { Role } from './'
 
 export function configureFakeBackend() {
-    // array in local storage for user records
-    let users = JSON.parse(localStorage.getItem('users')) || [{ 
+    // array in local storage for slide records
+    let slides = JSON.parse(localStorage.getItem('slides')) || [{ 
         id: 1,
-        title: 'Mr',
-        firstName: 'Joe',
-        lastName: 'Bloggs',
-        email: 'joe@bloggs.com',
-        role: Role.User,
-        password: 'joe123'
+        title: 'slide 1',
+        dateCreated: '2020/01/01',
+        userCreated: 'Mark',
+        dateModified: '2020/02/01',
+        projects: 'Project 1',
+        description: 'Description for slide 1',
+        attachments: 'A text box, holding place for attachments'
     }];
 
     // monkey patch fetch to setup fake backend
@@ -22,16 +23,16 @@ export function configureFakeBackend() {
             function handleRoute() {
                 const { method } = opts;
                 switch (true) {
-                    case url.endsWith('/users') && method === 'GET':
-                        return getUsers();
-                    case url.match(/\/users\/\d+$/) && method === 'GET':
-                        return getUserById();
-                    case url.endsWith('/users') && method === 'POST':
-                        return createUser();
-                    case url.match(/\/users\/\d+$/) && method === 'PUT':
-                        return updateUser();
-                    case url.match(/\/users\/\d+$/) && method === 'DELETE':
-                        return deleteUser();
+                    case url.endsWith('/slides') && method === 'GET':
+                        return getSlides();
+                    case url.match(/\/slides\/\d+$/) && method === 'GET':
+                        return getSlideById();
+                    case url.endsWith('/slides') && method === 'POST':
+                        return createSlide();
+                    case url.match(/\/slides\/\d+$/) && method === 'PUT':
+                        return updateSlide();
+                    case url.match(/\/slides\/\d+$/) && method === 'DELETE':
+                        return deleteSlide();
                     default:
                         // pass through any requests not handled above
                         return realFetch(url, opts)
@@ -42,53 +43,45 @@ export function configureFakeBackend() {
 
             // route functions
 
-            function getUsers() {
-                return ok(users);
+            function getSlides() {
+                return ok(slides);
             }
 
-            function getUserById() {
-                let user = users.find(x => x.id === idFromUrl());
-                return ok(user);
+            function getSlideById() {
+                let slide = slides.find(x => x.id === idFromUrl());
+                return ok(slide);
             }
     
-            function createUser() {
-                const user = body();
+            function createSlide() {
+                const slide = body();
 
-                if (users.find(x => x.email === user.email)) {
-                    return error(`User with the email ${user.email} already exists`);
+                if (slides.find(x => x.title === slide.title)) {
+                    return error(`Slide with the title ${slide.title} already exists`);
                 }
 
-                // assign user id and a few other properties then save
-                user.id = newUserId();
-                user.dateCreated = new Date().toISOString();
-                delete user.confirmPassword;
-                users.push(user);
-                localStorage.setItem('users', JSON.stringify(users));
+                // assign slide id and a few other properties then save
+                slide.id = newSlideId();
+                slide.dateCreated = new Date().toISOString();
+                slides.push(slide);
+                localStorage.setItem('slides', JSON.stringify(slides));
 
                 return ok();
             }
     
-            function updateUser() {
+            function updateSlide() {
                 let params = body();
-                let user = users.find(x => x.id === idFromUrl());
+                let slide = slides.find(x => x.id === idFromUrl());
 
-                // only update password if included
-                if (!params.password) {
-                    delete params.password;
-                }
-                // don't save confirm password
-                delete params.confirmPassword;
-
-                // update and save user
-                Object.assign(user, params);
-                localStorage.setItem('users', JSON.stringify(users));
+                // update and save slide
+                Object.assign(slide, params);
+                localStorage.setItem('slides', JSON.stringify(slides));
 
                 return ok();
             }
     
-            function deleteUser() {
-                users = users.filter(x => x.id !== idFromUrl());
-                localStorage.setItem('users', JSON.stringify(users));
+            function deleteSlide() {
+                slides = slides.filter(x => x.id !== idFromUrl());
+                localStorage.setItem('slides', JSON.stringify(slides));
 
                 return ok();
             }
@@ -112,8 +105,8 @@ export function configureFakeBackend() {
                 return opts.body && JSON.parse(opts.body);    
             }
 
-            function newUserId() {
-                return users.length ? Math.max(...users.map(x => x.id)) + 1 : 1;
+            function newSlideId() {
+                return slides.length ? Math.max(...slides.map(x => x.id)) + 1 : 1;
             }
         });
     }

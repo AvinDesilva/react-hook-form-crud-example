@@ -1,9 +1,9 @@
 import config from 'config';
 import { fetchWrapper } from '@/_helpers';
 
-const baseUrl = `${config.apiUrl}/users`;
+const baseUrl = `${config.apiUrl}/slides`;
 
-export const userService = {
+export const slideService = {
     getAll,
     getById,
     create,
